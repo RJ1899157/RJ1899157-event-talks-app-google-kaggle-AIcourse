@@ -399,16 +399,20 @@ window.handleCardSelect = function(updateId) {
 // Generate the Tweet Draft text
 function generateTweetText(update) {
     const header = `📢 #BigQuery ${update.type} (${update.date}):\n\n`;
-    const footer = `\n\nRead details: https://cloud.google.com/bigquery/docs/release-notes #GCP #DataWarehouse`;
+    const rawUrl = 'https://cloud.google.com/bigquery/docs/release-notes';
+    const footerPrefix = `\n\nRead details: `;
+    const footerSuffix = ` #GCP #DataWarehouse`;
     
-    const maxDescLength = 280 - header.length - footer.length;
+    // Twitter wraps all URLs in a t.co link which counts as exactly 23 characters
+    const virtualFooterLength = footerPrefix.length + 23 + footerSuffix.length;
+    const maxDescLength = 280 - header.length - virtualFooterLength;
+    
     let description = update.text;
-    
     if (description.length > maxDescLength) {
         description = description.substring(0, maxDescLength - 3) + "...";
     }
     
-    return `${header}${description}${footer}`;
+    return `${header}${description}${footerPrefix}${rawUrl}${footerSuffix}`;
 }
 
 // Open Tweet Composer Modal
@@ -442,17 +446,24 @@ function closeTweetModal() {
     tweetModal.classList.remove('active');
 }
 
+// Helper to calculate X/Twitter character length, counting all links as 23 characters
+function calculateXLength(text) {
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    const placeholder = 'a'.repeat(23);
+    return text.replace(urlRegex, placeholder).length;
+}
+
 // Update Character count indicator
 function updateCharacterCount() {
-    const currentLength = tweetTextarea.value.length;
-    charCounter.textContent = `${currentLength} / 280`;
+    const actualLength = calculateXLength(tweetTextarea.value);
+    charCounter.textContent = `${actualLength} / 280`;
     
-    if (currentLength > 280) {
+    if (actualLength > 280) {
         charCounter.className = 'character-counter danger';
         limitWarning.style.display = 'block';
         submitTweetBtn.disabled = true;
         submitTweetBtn.style.opacity = '0.5';
-    } else if (currentLength > 250) {
+    } else if (actualLength > 250) {
         charCounter.className = 'character-counter warning';
         limitWarning.style.display = 'none';
         submitTweetBtn.disabled = false;
