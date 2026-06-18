@@ -1,5 +1,7 @@
 # BigQuery Release Notes Hub & Tweet Composer 🚀
 
+![Dashboard Screenshot](static/images/screenshot.jpg)
+
 An elegant, dark-themed, glassmorphic web dashboard built with Python Flask and vanilla HTML/CSS/JS. It parses Google Cloud's BigQuery Release Notes RSS/Atom feed, structures them into individual updates, allows filtering/searching, and includes a built-in Tweet composer to post updates directly to X (Twitter).
 
 ## Features
