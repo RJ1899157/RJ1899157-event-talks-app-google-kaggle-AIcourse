@@ -20,6 +20,12 @@ const resetFiltersBtn = document.getElementById('reset-filters-btn');
 const exportCsvBtn = document.getElementById('export-csv-btn');
 const themeToggleBtn = document.getElementById('theme-toggle-btn');
 
+// Mobile Navigation Elements
+const controlCenter = document.getElementById('control-center');
+const mobileFilterBtn = document.getElementById('mobile-filter-btn');
+const closeFiltersBtn = document.getElementById('close-filters-btn');
+const filtersBackdrop = document.getElementById('filters-backdrop');
+
 // Stats Elements
 const statTotal = document.getElementById('stat-total');
 const statFeatures = document.getElementById('stat-features');
@@ -47,6 +53,7 @@ const toastMessage = document.getElementById('toast-message');
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    if (charCounter) charCounter.setAttribute('aria-live', 'polite');
     fetchReleases(false);
     setupEventListeners();
 });
@@ -101,6 +108,7 @@ function setupEventListeners() {
 
         activeCategory = pill.dataset.filter;
         filterAndRenderFeed();
+        closeMobileFilters(); // Close mobile drawer on filter selection
     });
 
     // Modal Close
@@ -138,6 +146,11 @@ function setupEventListeners() {
     themeToggleBtn.addEventListener('click', () => {
         toggleTheme();
     });
+
+    // Mobile Drawer Actions
+    mobileFilterBtn.addEventListener('click', openMobileFilters);
+    closeFiltersBtn.addEventListener('click', closeMobileFilters);
+    filtersBackdrop.addEventListener('click', closeMobileFilters);
 }
 
 // Fetch Release Notes
@@ -146,12 +159,9 @@ async function fetchReleases(forceRefresh = false) {
     refreshBtn.classList.add('loading');
     refreshBtn.disabled = true;
     
-    if (forceRefresh) {
-        feedContainer.style.opacity = '0.3';
-    } else {
-        shimmerLoader.style.display = 'flex';
-        feedContainer.style.display = 'none';
-    }
+    // Always display shimmer loader on fetches for consistent feedback
+    shimmerLoader.style.display = 'flex';
+    feedContainer.style.display = 'none';
     emptyState.style.display = 'none';
 
     try {
@@ -162,17 +172,21 @@ async function fetchReleases(forceRefresh = false) {
             updatesState = result.updates;
             lastUpdatedTimeEl.textContent = result.last_updated;
             
+            // Cache locally in localStorage for offline resilience
+            localStorage.setItem('cached_updates', JSON.stringify(result.updates));
+            localStorage.setItem('cached_last_updated', result.last_updated);
+            
             // Calculate and show statistics
             updateStatistics();
             
             // Filter and render
             filterAndRenderFeed();
         } else {
-            showToast(`Error: ${result.error || 'Failed to fetch release notes.'}`);
+            handleFetchError(result.error || 'Failed to fetch release notes.');
         }
     } catch (err) {
         console.error('Fetch error:', err);
-        showToast('Network error while fetching release notes.');
+        handleFetchError('Network error while fetching release notes.');
     } finally {
         // Clear UI Loading state
         refreshBtn.classList.remove('loading');
@@ -567,4 +581,50 @@ function toggleTheme() {
         iconSun.style.display = 'none';
         showToast('Swapped to Dark Mode 🌙');
     }
+}
+
+// Mobile Filter Drawer Handlers
+function openMobileFilters() {
+    controlCenter.classList.add('active');
+    filtersBackdrop.classList.add('active');
+    mobileFilterBtn.setAttribute('aria-expanded', 'true');
+}
+
+function closeMobileFilters() {
+    controlCenter.classList.remove('active');
+    filtersBackdrop.classList.remove('active');
+    mobileFilterBtn.setAttribute('aria-expanded', 'false');
+}
+
+// Resilience and Offline Handler
+function handleFetchError(errorMessage) {
+    const cachedData = localStorage.getItem('cached_updates');
+    const cachedTime = localStorage.getItem('cached_last_updated');
+    
+    if (cachedData) {
+        updatesState = JSON.parse(cachedData);
+        lastUpdatedTimeEl.textContent = `${cachedTime} (Offline)`;
+        updateStatistics();
+        filterAndRenderFeed();
+        showToast('Offline Mode: Loaded cached notes.');
+    } else {
+        renderErrorState(errorMessage);
+    }
+}
+
+// Render detailed error card
+function renderErrorState(errorMessage) {
+    feedContainer.innerHTML = `
+        <div class="empty-state glass-panel error-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 60px 40px; text-align: center; width: 100%;">
+            <svg viewBox="0 0 24 24" class="empty-icon" style="color: var(--color-deprecation); width: 64px; height: 64px;">
+                <path fill="currentColor" d="M12,2L1,21H23L12,2M12,6L19.53,19H4.47L12,6M11,10V14H13V10H11M11,16V18H13V16H11Z"/>
+            </svg>
+            <h3 style="font-size: 1.2rem; font-weight: 600;">Failed to sync release notes</h3>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); max-width: 400px;">${errorMessage || 'Check your internet connection or try again later.'}</p>
+            <button class="btn btn-primary" onclick="fetchReleases(true)" style="margin-top: 10px;">
+                Try Re-syncing
+            </button>
+        </div>
+    `;
+    resultsCountEl.textContent = 'Showing 0 updates';
 }

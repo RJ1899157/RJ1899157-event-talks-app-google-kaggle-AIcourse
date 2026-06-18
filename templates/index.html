@@ -91,8 +91,12 @@
         <!-- Main Feed and Control Center -->
         <main class="main-content">
             <!-- Search & Filters Sidebar -->
-            <aside class="control-center glass-panel">
-                <div class="section-title">
+            <aside class="control-center glass-panel" id="control-center">
+                <div class="sidebar-header-mobile">
+                    <h2>Filters & Search</h2>
+                    <button id="close-filters-btn" class="btn-close-modal" aria-label="Close filters">&times;</button>
+                </div>
+                <div class="section-title sidebar-title-desktop">
                     <h2>Filter & Search</h2>
                 </div>
                 
@@ -242,6 +246,17 @@
     <div id="toast" class="toast">
         <span id="toast-message">Message copied!</span>
     </div>
+
+    <!-- Mobile Filters Backdrop Overlay -->
+    <div id="filters-backdrop" class="filters-backdrop"></div>
+
+    <!-- Floating mobile filter button -->
+    <button id="mobile-filter-btn" class="mobile-filter-btn" aria-label="Open filter settings">
+        <svg viewBox="0 0 24 24" class="icon" style="width: 20px; height: 20px;">
+            <path fill="currentColor" d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h6V7h-6V5h-2v6h2V9z"/>
+        </svg>
+        <span>Filters</span>
+    </button>
 
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
