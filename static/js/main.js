@@ -179,7 +179,10 @@ async function fetchReleases(forceRefresh = false) {
             // Calculate and show statistics
             updateStatistics();
             
-            // Filter and render
+            // Populate feed container with all updates once
+            renderFeedList();
+            
+            // Apply current filters
             filterAndRenderFeed();
         } else {
             handleFetchError(result.error || 'Failed to fetch release notes.');
@@ -243,7 +246,12 @@ function animateNumber(id, start, end, duration) {
 
 // Filter and Render Feed
 function filterAndRenderFeed() {
-    filteredUpdates = updatesState.filter(update => {
+    let visibleCount = 0;
+    
+    updatesState.forEach(update => {
+        const card = document.getElementById(`card-${update.id.replace(/[^\w-]/g, '_')}`);
+        if (!card) return;
+        
         // Category filter
         let matchesCategory = true;
         const type = update.type.toLowerCase();
@@ -269,18 +277,51 @@ function filterAndRenderFeed() {
             matchesSearch = dateText.includes(searchQuery) || bodyText.includes(searchQuery) || typeText.includes(searchQuery);
         }
         
-        return matchesCategory && matchesSearch;
+        if (matchesCategory && matchesSearch) {
+            card.classList.remove('filtered-out');
+            visibleCount++;
+        } else {
+            card.classList.add('filtered-out');
+        }
     });
 
-    resultsCountEl.textContent = `Showing ${filteredUpdates.length} update${filteredUpdates.length === 1 ? '' : 's'}`;
+    resultsCountEl.textContent = `Showing ${visibleCount} update${visibleCount === 1 ? '' : 's'}`;
 
-    if (filteredUpdates.length === 0) {
-        feedContainer.innerHTML = '';
+    if (visibleCount === 0) {
         emptyState.style.display = 'flex';
+        feedContainer.style.display = 'none';
     } else {
         emptyState.style.display = 'none';
-        renderFeedList();
+        feedContainer.style.display = 'flex';
     }
+    
+    // Update filteredUpdates state for CSV exports
+    filteredUpdates = updatesState.filter(update => {
+        let matchesCategory = true;
+        const type = update.type.toLowerCase();
+        
+        if (activeCategory === 'feature') {
+            matchesCategory = type.includes('feature');
+        } else if (activeCategory === 'announcement') {
+            matchesCategory = type.includes('announcement');
+        } else if (activeCategory === 'changed') {
+            matchesCategory = type.includes('changed');
+        } else if (activeCategory === 'deprecation') {
+            matchesCategory = type.includes('deprecation');
+        } else if (activeCategory === 'issue') {
+            matchesCategory = type.includes('issue') || type.includes('fix');
+        }
+        
+        let matchesSearch = true;
+        if (searchQuery) {
+            const dateText = update.date.toLowerCase();
+            const bodyText = update.text.toLowerCase();
+            const typeText = update.type.toLowerCase();
+            matchesSearch = dateText.includes(searchQuery) || bodyText.includes(searchQuery) || typeText.includes(searchQuery);
+        }
+        
+        return matchesCategory && matchesSearch;
+    });
 }
 
 // Map category types to style badges
@@ -298,7 +339,7 @@ function getBadgeClass(type) {
 function renderFeedList() {
     feedContainer.innerHTML = '';
     
-    filteredUpdates.forEach(update => {
+    updatesState.forEach(update => {
         const badgeClass = getBadgeClass(update.type);
         const card = document.createElement('article');
         card.className = `note-card glass-panel ${badgeClass}`;
@@ -605,7 +646,8 @@ function handleFetchError(errorMessage) {
         updatesState = JSON.parse(cachedData);
         lastUpdatedTimeEl.textContent = `${cachedTime} (Offline)`;
         updateStatistics();
-        filterAndRenderFeed();
+        renderFeedList(); // Populate DOM
+        filterAndRenderFeed(); // Toggle visibilities
         showToast('Offline Mode: Loaded cached notes.');
     } else {
         renderErrorState(errorMessage);

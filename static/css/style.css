@@ -57,6 +57,11 @@ body {
     overflow-x: hidden;
     position: relative;
     line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body, .glass-panel, .pill, .btn, .note-card, .search-box input, #tweet-textarea, .modal-container, .app-header {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform var(--transition-normal), opacity var(--transition-normal);
 }
 
 /* Background Glow Orbs */
@@ -560,6 +565,10 @@ body.light-mode .app-header {
     position: relative;
     overflow: hidden;
     animation: cardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.note-card.filtered-out {
+    display: none !important;
 }
 
 .note-card::before {
