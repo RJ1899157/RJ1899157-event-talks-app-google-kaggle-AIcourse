@@ -17,6 +17,7 @@ const searchInput = document.getElementById('search-input');
 const clearSearchBtn = document.getElementById('clear-search-btn');
 const categoryPillsContainer = document.getElementById('category-pills');
 const resetFiltersBtn = document.getElementById('reset-filters-btn');
+const exportCsvBtn = document.getElementById('export-csv-btn');
 
 // Stats Elements
 const statTotal = document.getElementById('stat-total');
@@ -124,6 +125,11 @@ function setupEventListeners() {
     // Post to Twitter/X
     submitTweetBtn.addEventListener('click', () => {
         postToTwitter();
+    });
+
+    // Export to CSV
+    exportCsvBtn.addEventListener('click', () => {
+        exportToCSV();
     });
 }
 
@@ -290,9 +296,15 @@ function renderFeedList() {
             <div class="note-content">
                 ${update.html}
             </div>
-            <div class="note-actions">
+            <div class="note-actions" style="gap: 8px;">
+                <button class="btn btn-copy-card-action" onclick="copyCardTextToClipboard('${update.id.replace(/'/g, "\\'")}', this)">
+                    <svg viewBox="0 0 24 24" class="icon">
+                        <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" />
+                    </svg>
+                    <span>Copy Text</span>
+                </button>
                 <button class="btn btn-tweet-action" onclick="handleCardSelect('${update.id.replace(/'/g, "\\'")}')">
-                    <svg viewBox="0 0 24 24" class="icon" style="margin-right: 4px;">
+                    <svg viewBox="0 0 24 24" class="icon">
                         <path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                     </svg>
                     Tweet This Update
@@ -439,4 +451,77 @@ function showToast(message) {
     setTimeout(() => {
         toast.classList.remove('active');
     }, 3500);
+}
+
+// Copy card text to clipboard
+window.copyCardTextToClipboard = function(updateId, btnEl) {
+    const update = updatesState.find(u => u.id === updateId);
+    if (!update) return;
+    
+    const formattedText = `📢 BigQuery Release Note [${update.type}] (${update.date}):\n\n${update.text}\n\nRead details: https://cloud.google.com/bigquery/docs/release-notes`;
+    
+    navigator.clipboard.writeText(formattedText).then(() => {
+        const span = btnEl.querySelector('span');
+        const originalText = span.textContent;
+        span.textContent = 'Copied!';
+        btnEl.classList.add('copied');
+        
+        showToast('Release note text copied!');
+        
+        setTimeout(() => {
+            span.textContent = originalText;
+            btnEl.classList.remove('copied');
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        showToast('Clipboard copy failed.');
+    });
+};
+
+// Export filtered release notes to CSV file
+function exportToCSV() {
+    if (filteredUpdates.length === 0) {
+        showToast('No updates to export!');
+        return;
+    }
+    
+    // CSV headers
+    const headers = ['Date', 'Type', 'Description Text'];
+    
+    // Prepare rows and escape double quotes
+    const rows = filteredUpdates.map(u => [
+        u.date,
+        u.type,
+        u.text.replace(/"/g, '""')
+    ]);
+    
+    // Assemble CSV content string
+    const csvString = [
+        headers.join(','),
+        ...rows.map(row => row.map(val => `"${val}"`).join(','))
+    ].join('\n');
+    
+    // Download Blob trigger
+    try {
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        // Format file name based on filter & timestamp
+        const categoryLabel = activeCategory.replace(/\s+/g, '_');
+        const dateString = new Date().toISOString().slice(0, 10);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `bigquery_releases_${categoryLabel}_${dateString}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('CSV downloaded successfully!');
+    } catch (err) {
+        console.error('CSV export failed:', err);
+        showToast('Failed to export CSV.');
+    }
 }
