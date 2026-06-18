@@ -18,6 +18,7 @@ const clearSearchBtn = document.getElementById('clear-search-btn');
 const categoryPillsContainer = document.getElementById('category-pills');
 const resetFiltersBtn = document.getElementById('reset-filters-btn');
 const exportCsvBtn = document.getElementById('export-csv-btn');
+const themeToggleBtn = document.getElementById('theme-toggle-btn');
 
 // Stats Elements
 const statTotal = document.getElementById('stat-total');
@@ -45,6 +46,7 @@ const toastMessage = document.getElementById('toast-message');
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     fetchReleases(false);
     setupEventListeners();
 });
@@ -130,6 +132,11 @@ function setupEventListeners() {
     // Export to CSV
     exportCsvBtn.addEventListener('click', () => {
         exportToCSV();
+    });
+
+    // Theme Toggle
+    themeToggleBtn.addEventListener('click', () => {
+        toggleTheme();
     });
 }
 
@@ -523,5 +530,41 @@ function exportToCSV() {
     } catch (err) {
         console.error('CSV export failed:', err);
         showToast('Failed to export CSV.');
+    }
+}
+
+// Initialize theme from localStorage
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const iconMoon = themeToggleBtn.querySelector('.icon-moon');
+    const iconSun = themeToggleBtn.querySelector('.icon-sun');
+    
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        iconMoon.style.display = 'none';
+        iconSun.style.display = 'block';
+    } else {
+        document.body.classList.remove('light-mode');
+        iconMoon.style.display = 'block';
+        iconSun.style.display = 'none';
+    }
+}
+
+// Toggle page color theme
+function toggleTheme() {
+    const isLight = document.body.classList.toggle('light-mode');
+    const iconMoon = themeToggleBtn.querySelector('.icon-moon');
+    const iconSun = themeToggleBtn.querySelector('.icon-sun');
+    
+    if (isLight) {
+        localStorage.setItem('theme', 'light');
+        iconMoon.style.display = 'none';
+        iconSun.style.display = 'block';
+        showToast('Swapped to Light Mode ☀️');
+    } else {
+        localStorage.setItem('theme', 'dark');
+        iconMoon.style.display = 'block';
+        iconSun.style.display = 'none';
+        showToast('Swapped to Dark Mode 🌙');
     }
 }
