@@ -1111,33 +1111,44 @@ body.light-mode .app-header {
 /* Light Theme Variable Overrides */
 body.light-mode {
     --bg-main: #f3f4f6; /* cool gray 100 */
-    --bg-surface: rgba(255, 255, 255, 0.7);
-    --bg-surface-hover: rgba(255, 255, 255, 0.9);
+    --bg-surface: rgba(255, 255, 255, 0.75);
+    --bg-surface-hover: rgba(255, 255, 255, 0.95);
     --border-color: rgba(0, 0, 0, 0.08);
     --border-color-hover: rgba(0, 0, 0, 0.16);
     
-    --text-primary: #111827; /* gray 900 */
-    --text-secondary: #4b5563; /* gray 600 */
-    --text-muted: #9ca3af; /* gray 400 */
+    --text-primary: #0f172a; /* slate 900 */
+    --text-secondary: #334155; /* slate 700 */
+    --text-muted: #5e6b7e; /* slate 500 - high contrast */
     
-    --color-primary: #2563eb; /* blue 600 */
-    --color-primary-glow: rgba(37, 99, 235, 0.1);
-    --color-primary-hover: #1d4ed8; /* blue 700 */
+    --color-primary: #1d4ed8; /* blue 700 */
+    --color-primary-glow: rgba(29, 78, 216, 0.15);
+    --color-primary-hover: #1e40af; /* blue 800 */
     
-    --color-feature-bg: rgba(16, 185, 129, 0.12);
-    --color-feature-border: rgba(16, 185, 129, 0.25);
+    --color-feature: #047857; /* emerald 700 */
+    --color-feature-bg: rgba(4, 120, 87, 0.08);
+    --color-feature-border: rgba(4, 120, 87, 0.2);
     
-    --color-announcement-bg: rgba(37, 99, 235, 0.12);
-    --color-announcement-border: rgba(37, 99, 235, 0.25);
+    --color-announcement: #1d4ed8; /* blue 700 */
+    --color-announcement-bg: rgba(29, 78, 216, 0.08);
+    --color-announcement-border: rgba(29, 78, 216, 0.2);
     
-    --color-changed-bg: rgba(139, 92, 246, 0.12);
-    --color-changed-border: rgba(139, 92, 246, 0.25);
+    --color-changed: #6d28d9; /* violet 700 */
+    --color-changed-bg: rgba(109, 40, 217, 0.08);
+    --color-changed-border: rgba(109, 40, 217, 0.2);
     
-    --color-deprecation-bg: rgba(244, 63, 94, 0.12);
-    --color-deprecation-border: rgba(244, 63, 94, 0.25);
+    --color-deprecation: #be123c; /* rose 700 */
+    --color-deprecation-bg: rgba(190, 18, 60, 0.08);
+    --color-deprecation-border: rgba(190, 18, 60, 0.2);
     
-    --color-issue-bg: rgba(245, 158, 11, 0.12);
-    --color-issue-border: rgba(245, 158, 11, 0.25);
+    --color-issue: #c2410c; /* orange 700 - high contrast */
+    --color-issue-bg: rgba(194, 65, 12, 0.08);
+    --color-issue-border: rgba(194, 65, 12, 0.2);
+}
+
+body.light-mode .title-meta h1 {
+    background: linear-gradient(to right, #0f172a, #334155);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Light Theme Component Overrides */
